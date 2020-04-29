@@ -1,6 +1,7 @@
 import { Component, OnInit, Renderer2, ElementRef } from '@angular/core';
 import { WebsocketService } from '../websocket.service';
-
+import { ToastrService } from 'ngx-toastr';
+import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
@@ -21,8 +22,15 @@ export class ChatComponent implements OnInit {
   dataChannelOptions: any;
   emojii: any;
   possibleEmojis: any;
-
-  constructor(private socketservice: WebsocketService, private render: Renderer2, private eleref: ElementRef) {
+  otherpeername: string;
+  disconnect: any;
+  send: any;
+  connect: any;
+  c = 0;
+  d = 0;
+  date: number;
+  time: any;
+  constructor(private socketservice: WebsocketService, private render: Renderer2, private eleref: ElementRef, private toast: ToastrService) {
     this.possibleEmojis = [
       '🐀', '🐁', '🐭', '🐹', '🐂', '🐃', '🐄', '🐮', '🐅', '🐆', '🐯', '🐇', '🐐', '🐑', '🐏', '🐴',
       '🐎', '🐱', '🐈', '🐰', '🐓', '🐔', '🐤', '🐣', '🐥', '🐦', '🐧', '🐘', '🐩', '🐕', '🐷', '🐖',
@@ -35,41 +43,88 @@ export class ChatComponent implements OnInit {
     this.dataChannelOptions = {
       reliable: true
     };
-    this.yourConn = new RTCPeerConnection(this.configuration);
-    this.yourConn.ondatachannel = this.handleChannelCallback;
     this.showloginPage = true;
     this.showcallpage = false;
     this.textmsg = ""
     this.emojii = this.randomEmoji();
+    this.disconnect = true;
+    this.send = true;
+    this.connect = false;
+    const datepipe = new DatePipe('en-US');
+    setInterval(() => {
+      this.date = Date.now();
+      this.time = datepipe.transform(this.date, 'shortTime');
+    }, 1000);
   }
 
   randomEmoji() {
     var randomIndex = Math.floor(Math.random() * this.possibleEmojis.length);
     return this.possibleEmojis[randomIndex];
   }
+
   OnLogin() {
     this.UserName = this.loginname;
-    if (this.UserName.length > 0) {
+    if (this.UserName != undefined) {
       this.socketservice.send(null, { type: "login", name: this.UserName });
+    } else {
+      console.log("User name is empty");
+      this.toast.error('Enter a unique user name', 'User Name is empty');
     }
   }
 
   OnCall() {
-    if (this.calleename.length > 0) {
-      this.yourConn.createOffer().then(offer => {
-        this.socketservice.send(this.calleename, { type: "offer", offer: offer });
-        this.yourConn.setLocalDescription(offer);
-        console.log("local desc setted and sent of offer");
-      }).catch(error => alert('Error when creating offer'));
+    if (this.calleename != undefined) {
+      if (this.calleename != this.UserName) {
+        this.yourConn.createOffer().then(offer => {
+          this.socketservice.send(this.calleename, { type: "offer", offer: offer });
+          this.yourConn.setLocalDescription(offer);
+          this.otherpeername = this.calleename;
+          this.disconnect = false;
+          this.send = false;
+          this.connect = true;
+          this.toast.info('If callee logged in you will be connected', 'Calling ' + this.otherpeername + '..');
+          console.log("local desc setted and offer is sent");
+        }).catch(error => {
+          console.log("Error when creating offer", error);
+          alert('Error when calling, Reload and try again');
+        });
+      } else {
+        this.toast.error('You cannot call yourself', 'Invalid Callee name !')
+      }
+    } else {
+      this.toast.error('Enter the callee name', 'Callee name is empty !');
     }
   }
 
   Onhangup() {
     this.socketservice.send(this.calleename, { type: "leave" });
     this.handleLeave();
+    this.disconnection();
   }
 
-  handleDataChannelOpen = function () {
+  OnClear() {
+    document.getElementById("messages").textContent = '';
+  }
+
+  success() {
+    this.toast.success('You are connected to ' + this.otherpeername, 'Connected !', {
+      timeOut: 4000
+    });
+  }
+
+  disconnection() {
+    this.toast.error('', 'Successfully Disconnected !', {
+      timeOut: 4000
+    });
+    this.otherpeername = "";
+  }
+
+  handleDataChannelOpen = () => {
+    this.c++;
+    if (this.c == 2) {
+      this.success();
+      this.c = 0;
+    }
     console.log("Data Channel is opened");
   }
 
@@ -82,7 +137,12 @@ export class ChatComponent implements OnInit {
     console.log("Error when creating data channel", error);
   }
 
-  handleDataChannelClose = function () {
+  handleDataChannelClose = () => {
+    this.d++;
+    if (this.d == 2) {
+      this.disconnection();
+      this.d = 0;
+    }
     console.log("Data channel is closed");
   }
 
@@ -96,16 +156,16 @@ export class ChatComponent implements OnInit {
 
   handleLogin(success) {
     if (success === false) {
-      alert('Oops...try a different name');
-
+      this.toast.error('Sorry user name is already taken', 'Try different user name !');
     } else {
       this.showloginPage = false;
       this.showcallpage = true;
+      this.yourConn = new RTCPeerConnection(this.configuration);
+      this.yourConn.ondatachannel = this.handleChannelCallback;
       this.yourConn.onicecandidate = event => {
-        console.log("ice called");
         if (event.candidate) {
           this.socketservice.send(this.calleename, { type: "candidate", candidate: event.candidate });
-          console.log("ice candidate sended");
+          console.log("ice candidate sent");
         }
       }
       this.dataChannel = this.yourConn.createDataChannel("channel1", this.dataChannelOptions);
@@ -117,20 +177,28 @@ export class ChatComponent implements OnInit {
   }
 
   handleOffer(offer, name) {
-    console.log("handle offer", offer, name);
     this.calleename = name;
     this.yourConn.setRemoteDescription(new RTCSessionDescription(offer));
     this.yourConn.createAnswer().then(answer => {
       this.yourConn.setLocalDescription(answer);
       this.socketservice.send(name, { type: "answer", answer: answer });
-      console.log("local desc setted and sent of answer");
-    }).catch(error => alert('Error when creating answer'));
-
+      this.otherpeername = this.calleename;
+      this.disconnect = false;
+      this.send = false;
+      this.connect = true;
+      this.toast.info('You will be connected', 'Answering to ' + this.otherpeername + '..')
+      console.log("local desc setted and answer is sent");
+    }).catch(error => {
+      console.log("Error when creating answer", error);
+      alert('Error when answering, Reload and ask your partner to call again');
+    });
   }
+
   handleAnswer(answer) {
     this.yourConn.setRemoteDescription(new RTCSessionDescription(answer));
-    console.log("handle answer and remote desc setted");
+    console.log("Remote desc is set");
   }
+
   handleCandidate(candidate) {
     console.log("ice added");
     this.yourConn.addIceCandidate(new RTCIceCandidate(candidate));
@@ -138,8 +206,11 @@ export class ChatComponent implements OnInit {
 
   handleLeave() {
     this.calleename = null;
+    this.connect = false;
+    this.disconnect = true;
+    this.send = true;
     this.yourConn.close();
-    this.yourConn.onicecandidate = null;
+    this.handleLogin(true);
   }
 
   Sendmsg() {
@@ -158,8 +229,7 @@ export class ChatComponent implements OnInit {
 
   insertMessageToDOM(options, isFromMe) {
     console.log("Dom msg insert", options, isFromMe);
-    const chatArea = this.eleref.nativeElement.querySelector("#msgs");
-    this.render.addClass(chatArea, 'overflow-auto');
+    const chatArea = this.eleref.nativeElement.querySelector("#messages");
     let message = this.render.createElement('div');
     this.render.addClass(message, 'message');
     if (isFromMe) {
@@ -170,16 +240,24 @@ export class ChatComponent implements OnInit {
     let nameEl = this.render.createElement('div');
     this.render.addClass(nameEl, 'message__name');
     this.render.appendChild(nameEl, this.render.createText(options.emoji + " " + options.name));
+    let timeEl = this.render.createElement('small');
+    this.render.addClass(timeEl, 'form-text');
+    this.render.addClass(timeEl, 'time');
+    this.render.appendChild(timeEl, this.render.createText(this.time));
+    console.log(this.time)
     let nameCon = this.render.createElement('div');
     this.render.addClass(nameCon, 'message__bubble');
     this.render.appendChild(nameCon, this.render.createText(options.content));
+    this.render.appendChild(nameCon, timeEl);
     this.render.appendChild(message, nameEl);
     this.render.appendChild(message, nameCon);
     this.render.appendChild(chatArea, message);
+    chatArea.scrollTop = chatArea.scrollHeight - chatArea.clientHeight;
   }
+
   ngOnInit() {
     this.socketservice.listen().subscribe((msg: any) => {
-      console.log("Got message ", msg);
+      console.log("Got message from the server");
       var data = JSON.parse(msg);
       switch (data.type) {
         case "login":
@@ -189,6 +267,7 @@ export class ChatComponent implements OnInit {
         case "offer":
           this.handleOffer(data.offer, data.name);
           break;
+        //when somebody wants to answer
         case "answer":
           this.handleAnswer(data.answer);
           break;
@@ -196,15 +275,35 @@ export class ChatComponent implements OnInit {
         case "candidate":
           this.handleCandidate(data.candidate);
           break;
+        //when partner leaves
         case "leave":
+          this.toast.info('Your partner disconnected', 'Disconnecting from ' + this.otherpeername + '..')
           this.handleLeave();
+          break;
+        //when calling if no such user logged in
+        case "nouser":
+          this.toast.error('No such user is logged in..', 'Invalid user name !');
+          this.calleename = null;
+          this.connect = false;
+          this.disconnect = true;
+          this.send = true;
+          this.otherpeername = "";
+          this.handleLogin(true);
+          break;
+        case "busy":
+          //when partner is already busy
+          this.toast.info('Your partner ' + this.otherpeername + ' is busy', 'Busy !');
+          this.calleename = null;
+          this.connect = false;
+          this.disconnect = true;
+          this.send = true;
+          this.otherpeername = "";
+          this.handleLogin(true);
           break;
         default:
           break;
       }
     });
   }
-
-
 }
 

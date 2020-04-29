@@ -1,131 +1,109 @@
-<body>
-  <div id="loginPage" class="container text-center" *ngIf="showloginPage">
-    <div class="row">
-      <div class="col-md-4 col-md-offset-4">
-        <h2>WebRTC Text Demo. Please sign in</h2>
-        <label for="usernameInput" class="sr-only">Login</label>
-        <input
-          type="email"
-          id="usernameInput"
-          class="form-control formgroup"
-          placeholder="Login"
-          required=""
-          autofocus=""
-          [ngModelOptions]="{ standalone: true }"
-          [(ngModel)]="loginname"
-        />
-        <button
-          id="loginBtn"
-          class="btn btn-lg btn-primary btnblock"
-          (click)="OnLogin()"
-        >
-          Sign in
+<div class="container" *ngIf="showloginPage">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Login to Talk</h5>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <input
+            type="email"
+            class="form-control"
+            placeholder="Your User Name"
+            [ngModelOptions]="{ standalone: true }"
+            [(ngModel)]="loginname"
+          />
+          <small class="form-text text-muted"
+            >If user name already exist try different one</small
+          >
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" (click)="OnLogin()">
+          Sign Up
         </button>
       </div>
     </div>
   </div>
-
-  <div *ngIf="showcallpage">
-    <div class="row text-center form-group connect">
-      <div class="col-md-12">
-        <input
-          id="callToUsernameInput"
-          type="text"
-          placeholder="username to call"
-          [ngModelOptions]="{ standalone: true }"
-          [(ngModel)]="calleename"
-        />
-        <button id="callBtn" class="btn-success btn" (click)="OnCall()">
-          Connect
-        </button>
-        <button id="hangUpBtn" class="btn-danger btn" (click)="Onhangup()">
-          Disconnect
-        </button>
+</div>
+<div class="container" *ngIf="showcallpage">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="input-group">
+          <input
+            class="form-control input-sm chat_input"
+            id="callToUsernameInput"
+            type="text"
+            placeholder="Username to connect"
+            [ngModelOptions]="{ standalone: true }"
+            [(ngModel)]="calleename"
+          />
+          <span class="input-group-btn connection">
+            <button
+              id="callBtn"
+              class="btn-success btn btn-sm"
+              (click)="OnCall()"
+              [disabled]="connect"
+            >
+              Connect
+            </button>
+            <button
+              id="hangUpBtn"
+              class="btn-danger btn btn-sm space"
+              (click)="Onhangup()"
+              [disabled]="disconnect"
+            >
+              Disconnect
+            </button>
+            <button
+              id="clear"
+              class="btn-primary btn btn-sm space"
+              (click)="OnClear()"
+            >
+              Clear
+            </button>
+          </span>
+          <span class="input-group">
+            <small class="form-text text-muted"
+              >Logged in as: {{ UserName }}</small
+            >
+          </span>
+          <span class="input-group">
+            <small class="form-text text-muted"
+              >Connected to: {{ otherpeername }}</small
+            >
+          </span>
+        </div>
       </div>
-    </div>
-
-    <div class="content">
-      <div class="messages" id="msgs"></div>
-      <form class="footer">
-        <input
-          type="text"
-          placeholder="Your message.."
-          [ngModelOptions]="{ standalone: true }"
-          [(ngModel)]="textmsg"
-        />
-        <button type="submit" (click)="Sendmsg()">Send</button>
-      </form>
-    </div>
-  </div>
-</body>
-<!-- <body>
-  <div id="loginPage" class="container text-center" *ngIf="showloginPage">
-    <div class="row">
-      <div class="col-md-4 col-md-offset-4">
-        <h2>WebRTC Text Demo. Please sign in</h2>
-        <label for="usernameInput" class="sr-only">Login</label>
-        <input
-          type="email"
-          id="usernameInput"
-          class="form-control formgroup"
-          placeholder="Login"
-          required=""
-          autofocus=""
-          [ngModelOptions]="{ standalone: true }"
-          [(ngModel)]="loginname"
-        />
-        <button
-          id="loginBtn"
-          class="btn btn-lg btn-primary btnblock"
-          (click)="OnLogin()"
-        >
-          Sign in
-        </button>
+      <div class="modal-body chat-body">
+        <small class="form-text text-muted date">{{ date | date }}</small>
+        <div class="content">
+          <div class="messages" id="messages"></div>
+        </div>
       </div>
-    </div>
-  </div>
-
-  <div id="callPage" class="call-page container" *ngIf="showcallpage">
-    <div class="row">
-      <div class="col-md-4 col-md-offset-4 text-center">
-        <div class="panel panel-primary">
-          <div class="panel-heading">Text chat</div>
-          <div id="chatarea" class="panel-body text-left"></div>
+      <div class="modal-footer">
+        <div class="input-group text-message">
+          <input
+            id="btn-input"
+            type="text"
+            class="form-control input-sm chat_input"
+            placeholder="your message here..."
+            [ngModelOptions]="{ standalone: true }"
+            [(ngModel)]="textmsg"
+          />
+          <span class="input-group-btn">
+            <button
+              class="btn btn-primary"
+              id="btn-chat"
+              (click)="Sendmsg()"
+              [disabled]="send"
+            >
+              Send
+            </button>
+          </span>
         </div>
       </div>
     </div>
-
-    <div class="row text-center form-group">
-      <div class="col-md-12">
-        <input
-          id="callToUsernameInput"
-          type="text"
-          placeholder="username to call"
-          [ngModelOptions]="{ standalone: true }"
-          [(ngModel)]="calleename"
-        />
-        <button id="callBtn" class="btn-success btn" (click)="OnCall()">
-          Connect
-        </button>
-        <button id="hangUpBtn" class="btn-danger btn" (click)="Onhangup()">
-          Disconnect
-        </button>
-      </div>
-    </div>
-
-    <div class="row text-center">
-      <div class="col-md-12">
-        <input
-          id="msgInput"
-          type="text"
-          placeholder="message"
-          [ngModelOptions]="{ standalone: true }"
-          [(ngModel)]="textmsg"
-        />
-        <button id="sendMsgBtn" class="btn-success btn" (click)="Sendmsg()">
-          Send
-        </button>
-      </div>
-    </div>
   </div>
-</body> -->
+</div>
