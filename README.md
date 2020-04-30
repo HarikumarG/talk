@@ -4,24 +4,17 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+The project is deployed in the heroku where you can find the working model.
+https://chit-chat-in.herokuapp.com/
 
-## Code scaffolding
+# Description
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+This app is based on WebRTC concept which helps to chat with another peer without sending message packet to the server. It directly connects one peer to another peer.
 
-## Build
+For this app to work fine, A web server is required which has websocket to connect to the peers for sending sdp's and ICEcandidates to each other ie. between peers.
+This web server is also deployed in heroku.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+# Local Deployment
 
-## Running unit tests
+For local deployment just git clone this repository and Run `npm install` and Run `npm start` if this command throws error the run `ng serve` this command should work fine.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
