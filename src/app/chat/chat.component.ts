@@ -30,6 +30,7 @@ export class ChatComponent implements OnInit {
   d = 0;
   date: number;
   time: any;
+  hangup: boolean;
   constructor(private socketservice: WebsocketService, private render: Renderer2, private eleref: ElementRef, private toast: ToastrService) {
     this.possibleEmojis = [
       '🐀', '🐁', '🐭', '🐹', '🐂', '🐃', '🐄', '🐮', '🐅', '🐆', '🐯', '🐇', '🐐', '🐑', '🐏', '🐴',
@@ -97,9 +98,9 @@ export class ChatComponent implements OnInit {
   }
 
   Onhangup() {
+    this.hangup = true;
     this.socketservice.send(this.calleename, { type: "leave" });
-    this.handleLeave();
-    this.disconnection();
+    this.socketservice.send(this.UserName, { type: "leave" });
   }
 
   OnClear() {
@@ -158,6 +159,7 @@ export class ChatComponent implements OnInit {
     if (success === false) {
       this.toast.error('Sorry user name is already taken', 'Try different user name !');
     } else {
+      this.hangup = false;
       this.showloginPage = false;
       this.showcallpage = true;
       this.yourConn = new RTCPeerConnection(this.configuration);
@@ -244,7 +246,6 @@ export class ChatComponent implements OnInit {
     this.render.addClass(timeEl, 'form-text');
     this.render.addClass(timeEl, 'time');
     this.render.appendChild(timeEl, this.render.createText(this.time));
-    console.log(this.time)
     let nameCon = this.render.createElement('div');
     this.render.addClass(nameCon, 'message__bubble');
     this.render.appendChild(nameCon, this.render.createText(options.content));
@@ -277,7 +278,9 @@ export class ChatComponent implements OnInit {
           break;
         //when partner leaves
         case "leave":
-          this.toast.info('Your partner disconnected', 'Disconnecting from ' + this.otherpeername + '..')
+          if (this.hangup == false) {
+            this.toast.info('Your partner disconnected', 'Disconnecting from ' + this.otherpeername + '..');
+          }
           this.handleLeave();
           break;
         //when calling if no such user logged in

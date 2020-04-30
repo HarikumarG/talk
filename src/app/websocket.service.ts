@@ -8,9 +8,8 @@ import { ToastrService } from 'ngx-toastr';
 export class WebsocketService {
 
   conn: any;
-  port = 9090;
   constructor(private toast: ToastrService) {
-    this.conn = new WebSocket('ws://localhost:' + this.port);
+    this.conn = new WebSocket('wss://talk-webserver.herokuapp.com/');
     this.conn.onopen = function () {
       toast.success('Connected to the server', 'You can Login now !');
       console.log("Connected to the signalling server");
