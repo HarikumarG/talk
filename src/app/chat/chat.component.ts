@@ -170,7 +170,7 @@ export class ChatComponent implements OnInit {
           console.log("ice candidate sent");
         }
       }
-      this.dataChannel = this.yourConn.createDataChannel("channel1", this.dataChannelOptions);
+      this.dataChannel = this.yourConn.createDataChannel("chat");
       this.dataChannel.onerror = this.handleDataChannelError;
       this.dataChannel.onmessage = this.handleDataChannelMessageReceived;
       this.dataChannel.onclose = this.handleDataChannelClose;
