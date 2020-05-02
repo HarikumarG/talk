@@ -39,7 +39,9 @@ export class ChatComponent implements OnInit {
       '🐍', '🐢', '🐸', '🐋', '🐳', '🐬', '🐙', '🐟', '🐠', '🐡', '🐚', '🐌', '🐛', '🐜', '🐝', '🐞',
     ];
     this.configuration = {
-      "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }]
+      iceServers: [{
+        url: 'stun:stun.l.google.com:19302'
+      }]
     };
     this.dataChannelOptions = {
       reliable: true
@@ -147,12 +149,29 @@ export class ChatComponent implements OnInit {
     console.log("Data channel is closed");
   }
 
-  handleChannelCallback = event => {
-    this.dataChannel = event.channel;
-    this.dataChannel.onopen = this.handleDataChannelOpen;
-    this.dataChannel.onmessage = this.handleDataChannelMessageReceived;
-    this.dataChannel.onerror = this.handleDataChannelError;
-    this.dataChannel.onclose = this.handleDataChannelClose;
+  // handleChannelCallback = event => {
+  //   let receiveChannel = event.channel;
+  //   receiveChannel.onopen = this.handleDataChannelOpen;
+  //   receiveChannel.onmessage = this.handleDataChannelMessageReceived;
+  //   receiveChannel.onerror = this.handleDataChannelError;
+  //   receiveChannel.onclose = this.handleDataChannelClose;
+  // }
+
+  checkdatachannelstate(channel: RTCDataChannel) {
+    if (channel != undefined) {
+      console.log("Channel State is ", channel.readyState);
+      if (channel.readyState === 'open') {
+        console.log("Opened");
+      }
+    }
+  }
+
+  setupdatachannel(channel: RTCDataChannel) {
+    this.checkdatachannelstate(channel);
+    channel.onopen = this.handleDataChannelOpen;
+    channel.onclose = this.handleDataChannelClose;
+    channel.onmessage = this.handleDataChannelMessageReceived;
+    channel.onerror = this.handleDataChannelError;
   }
 
   handleLogin(success) {
@@ -163,18 +182,18 @@ export class ChatComponent implements OnInit {
       this.showloginPage = false;
       this.showcallpage = true;
       this.yourConn = new RTCPeerConnection(this.configuration);
-      this.yourConn.ondatachannel = this.handleChannelCallback;
       this.yourConn.onicecandidate = event => {
         if (event.candidate) {
           this.socketservice.send(this.calleename, { type: "candidate", candidate: event.candidate });
           console.log("ice candidate sent");
         }
+      };
+      this.yourConn.ondatachannel = event => {
+        let receiveChannel = event.channel;
+        this.setupdatachannel(receiveChannel);
       }
-      this.dataChannel = this.yourConn.createDataChannel("chat");
-      this.dataChannel.onerror = this.handleDataChannelError;
-      this.dataChannel.onmessage = this.handleDataChannelMessageReceived;
-      this.dataChannel.onclose = this.handleDataChannelClose;
-      this.dataChannel.onopen = this.handleDataChannelOpen;
+      this.dataChannel = this.yourConn.createDataChannel('chat');
+      this.setupdatachannel(this.dataChannel);
     }
   }
 
@@ -258,7 +277,6 @@ export class ChatComponent implements OnInit {
 
   ngOnInit() {
     this.socketservice.listen().subscribe((msg: any) => {
-      console.log("Got message from the server");
       var data = JSON.parse(msg);
       switch (data.type) {
         case "login":
