@@ -1,0 +1,40 @@
+Phase 1:
+
+1.Connection establishment --done
+2.Send and recieve message --done
+
+Phase 2:
+
+1.Design Login page --done
+2.Design Chat page --done
+3.Scroll to bottom by default --done
+4.Display who is logged in --done
+5.Display who is connected --done
+6.Remove all unwanted code --done
+7.add,remove comments,remove unwanted codes --done
+8.Update readme --done
+
+1.indicate user while connection is established and disable connect button --done
+2.indicate user if other person is not logged in to server --done
+3.indicate user if other person disconnects or closes the window or reloads the page --done
+4.indicate user if datachannel is open and if closed then indicate user and enable connect button --done
+5.indicate other user that the answer is sending to peer and connected to offer creater. --done
+6.indicate user if the server is down --done
+7.indicate user if login failed --done
+8.indicate user if other user is already engaged --done
+9.if same name trying to connect itself --done
+10.Find way to deploy to servers and connect --done
+11.Display date(3 march 2020) --done
+12.Add timestamp --done
+
+Phase 3:
+
+1.Add select and delete particular message
+2.Delete message to other person also
+3.User can send emoji
+4.Ask permission to answer the offer
+5.Indicate user if other person is rejecting the offer
+6.Increase and decrease font size
+7.Copy message and paste
+8.Display the login members list in the server
+9.On arriving message a notification sound should be heared.

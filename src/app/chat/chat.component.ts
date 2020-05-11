@@ -148,15 +148,7 @@ export class ChatComponent implements OnInit {
     }
     console.log("Data channel is closed");
   }
-
-  // handleChannelCallback = event => {
-  //   let receiveChannel = event.channel;
-  //   receiveChannel.onopen = this.handleDataChannelOpen;
-  //   receiveChannel.onmessage = this.handleDataChannelMessageReceived;
-  //   receiveChannel.onerror = this.handleDataChannelError;
-  //   receiveChannel.onclose = this.handleDataChannelClose;
-  // }
-
+  
   checkdatachannelstate(channel: RTCDataChannel) {
     if (channel != undefined) {
       console.log("Channel State is ", channel.readyState);
