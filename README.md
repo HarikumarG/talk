@@ -14,6 +14,8 @@ This app is based on WebRTC concept which helps to chat with another peer withou
 For this app to work fine, A web server is required which has websocket to connect to the peers for sending sdp's and ICEcandidates to each other ie. between peers.
 This web server is also deployed in heroku.
 
+https://github.com/HarikumarG/talk-server
+
 # Local Deployment
 
 For local deployment just git clone this repository and Run `npm install` and Run `npm start` if this command throws error the run `ng serve` this command should work fine.
